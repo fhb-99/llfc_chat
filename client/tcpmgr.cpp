@@ -1,4 +1,5 @@
 #include "tcpmgr.h"
+#include "usermgr.h"
 
 TcpMgr::TcpMgr(QObject *parent)
     : QObject{parent}, _host(""), _port(0), _b_recv_pending(false),
@@ -46,6 +47,7 @@ TcpMgr::TcpMgr(QObject *parent)
 
             // 将读出的数据从缓冲区移除
             _buffer = _buffer.mid(_message_len);
+            HandlerMsg(ReqId(_message_id), _message_len, data);
         }
     });
 
@@ -92,6 +94,59 @@ TcpMgr::TcpMgr(QObject *parent)
 
     // 当登录成功时，在login中的tcpmgr实例对象发送信号，用户可以进行通信
     QObject::connect(this, &TcpMgr::sig_send_data, this, &TcpMgr::slot_send_data);
+
+    InitHandlers();
+}
+
+void TcpMgr::HandlerMsg(ReqId reqid, int len, QByteArray data)
+{
+    auto tmp = m_handlers.find(reqid);
+    if(tmp == m_handlers.end())
+    {
+        qDebug()<< "not found id ["<< reqid << "] to handle";
+        return ;
+    }
+    m_handlers[reqid](reqid, len, data);
+    // tmp.value()(reqid, len, data);
+}
+
+void TcpMgr::InitHandlers()
+{
+    m_handlers.insert(ReqId::ID_CHAT_LOGIN_RSP, [this](ReqId reqid, int len, QByteArray data){
+        qDebug() << "handler id is : " << reqid << "data is : " << data;
+        // 将QByteArray转为QJsonDocument
+        QJsonDocument json_doc = QJsonDocument::fromJson(data);
+        if(json_doc.isNull())
+        {
+            qDebug() << "Failed to create QJsonDocument";
+            return;
+        }
+
+        QJsonObject json_obj = json_doc.object();
+
+        if(!json_obj.contains("error"))
+        {
+            int err = ErrorCodes::ERR_JSON;
+            qDebug() << "Login failed, error is Json Parse Error " << err;
+            emit sig_login_failed(err);
+            return;
+        }
+
+        int error = json_obj["error"].toInt();
+        if(error != ErrorCodes::SUCCESS)
+            {
+            qDebug() << "Login Failed , error is " << error;
+            emit sig_login_failed(error);
+            return;
+        }
+
+        // 成功解析
+        UserMgr::getInstance()->setId(json_obj["id"].toInt());
+        UserMgr::getInstance()->setName(json_obj["name"].toString());
+        UserMgr::getInstance()->setToken(json_obj["token"].toString());
+        // 发送切换主界面
+        emit sig_switch_chat();
+    });
 }
 
 void TcpMgr::slot_tcp_connect(ServerInfo si)

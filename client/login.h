@@ -50,6 +50,7 @@ signals:
 private slots:
     void slot_login_mod_finish(ReqId id, QString res, ErrorCodes err);
     void slot_tcp_con_finish(bool flag);
+    void slot_login_failed(int);
 
     void on_forget_pass_clicked();
     void on_login_clicked();

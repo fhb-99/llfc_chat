@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     Reset.cpp \
+    chatdialog.cpp \
     clickedlabel.cpp \
     global.cpp \
     httpmgr.cpp \
@@ -19,9 +20,11 @@ SOURCES += \
     register.cpp \
     registeryes.cpp \
     tcpmgr.cpp \
-    timerbtn.cpp
+    timerbtn.cpp \
+    usermgr.cpp
 
 HEADERS += \
+    chatdialog.h \
     clickedlabel.h \
     global.h \
     httpmgr.h \
@@ -32,10 +35,12 @@ HEADERS += \
     reset.h \
     singleton.h \
     tcpmgr.h \
-    timerbtn.h
+    timerbtn.h \
+    usermgr.h
 
 FORMS += \
     Reset.ui \
+    chatdialog.ui \
     login.ui \
     mainwindow.ui \
     register.ui \

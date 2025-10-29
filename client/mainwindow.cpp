@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "login.h"
+#include "tcpmgr.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -9,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_register(nullptr)
     , m_register_yes(nullptr)
     , m_reset(nullptr)
+    , m_chat(nullptr)
 {
     ui->setupUi(this);
 
@@ -24,6 +26,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 忘记密码,切换界面
     connect(m_login, &Login::sigSwitchReset, this, &MainWindow::slot_get_Reset);
+
+    // 登录成功，切换聊天主界面
+    connect(TcpMgr::getInstance().get(), &TcpMgr::sig_switch_chat, this, &MainWindow::slot_get_ChatDialog);
 }
 
 MainWindow::~MainWindow()
@@ -105,4 +110,14 @@ void MainWindow::slot_get_RegisterYes()
     setCentralWidget(m_register_yes);
     m_register->hide();
     m_register_yes->show();
+}
+
+void MainWindow::slot_get_ChatDialog()
+{
+    m_chat = new ChatDialog(this);
+    m_chat->setWindowFlags(Qt::CustomizeWindowHint|Qt::FramelessWindowHint);
+    setCentralWidget(m_chat);
+    m_login->hide();
+    m_chat->show();
+
 }

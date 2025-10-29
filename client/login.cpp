@@ -28,6 +28,8 @@ Login::Login(QWidget *parent)
     connect(this, &Login::sig_tcp_connect, TcpMgr::getInstance().get(), &TcpMgr::slot_tcp_connect);
     // 接受tcp连接成功信号
     connect(TcpMgr::getInstance().get(), &TcpMgr::sig_con_success, this, &Login::slot_tcp_con_finish);
+    // 接收tcp连接失败
+    connect(TcpMgr::getInstance().get(), &TcpMgr::sig_login_failed, this, &Login::slot_login_failed);
 
 }
 
@@ -161,6 +163,12 @@ void Login::slot_tcp_con_finish(bool flag)
     }else{
         qDebug() << "异常。。。";
     }
+}
+
+void Login::slot_login_failed(int error)
+{
+    QString result = QString("登录失败, err is %1").arg(error);
+    qDebug() << result;
 }
 
 

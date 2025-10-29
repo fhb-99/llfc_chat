@@ -14,6 +14,11 @@ public:
     explicit TcpMgr(QObject *parent = nullptr);
 
 private:
+    // 客户端处理服务器回包，逻辑处理
+    void HandlerMsg(ReqId reqid, int len, QByteArray data);
+    void InitHandlers();
+    QMap<ReqId, std::function<void(ReqId reqid, int len, QByteArray data)>> m_handlers;
+
     QTcpSocket _socket;
     QString _host;
     uint16_t _port;
@@ -26,11 +31,13 @@ private:
 
 public slots:
     void slot_tcp_connect(ServerInfo si);
-    void slot_send_data(ReqId reqid, QString array);
+    void slot_send_data(ReqId reqid, QString data);
 
 signals:
     void sig_con_success(bool flag);
-    void sig_send_data(ReqId reqid, QString array);
+    void sig_send_data(ReqId reqid, QString data);
+    void sig_login_failed(int error);
+    void sig_switch_chat();
 };
 
 #endif // TCPMGR_H
